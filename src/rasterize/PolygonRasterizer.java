@@ -14,9 +14,6 @@ public class PolygonRasterizer {
     }
 
     public void rasterize(Polygon polygon) {
-        if (polygon.getCount() < 3)
-            return;
-
         for (int i = 0; i < polygon.getCount(); i++) {
             Point point1 = polygon.getPoint(i);
             Point point2 = polygon.getPoint(i + 1 < polygon.getCount() ? i + 1 : 0);

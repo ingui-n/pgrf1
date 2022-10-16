@@ -1,6 +1,5 @@
 import model.Polygon;
 import rasterize.*;
-import model.Line;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,7 +10,7 @@ import model.Point;
 public class Canvas {
     private final JFrame frame;
     private JPanel panel;
-    private RasterBufferImage raster;
+    private RasterBufferedImage raster;
     private LineRasterizer lineRasterizer;
     private PolygonRasterizer polygonRasterizer;
 
@@ -19,7 +18,7 @@ public class Canvas {
     private int y1;
     private int x2;
     private int y2;
-    private RasterBufferImage r;
+    private RasterBufferedImage r;
 
     private Polygon polygon;
 
@@ -28,14 +27,15 @@ public class Canvas {
 
         frame.setLayout(new BorderLayout());
         frame.setTitle("PGRF1");
-        frame.setResizable(false);
+        frame.setResizable(true);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        raster = new RasterBufferImage(800, 600);
-        lineRasterizer = new LineRasterizerGraphics(raster);
-        //lineRasterizer = new LineRasterizerTrivial(raster);
-        polygonRasterizer = new PolygonRasterizer(lineRasterizer);
+        raster = new RasterBufferedImage(width, height);
 
+//        lineRasterizer = new LineRasterizerGraphics(raster);
+        lineRasterizer = new FilledLineRasterizer(raster);
+
+        polygonRasterizer = new PolygonRasterizer(lineRasterizer);
         polygon = new Polygon();
 
         panel = new JPanel() {
@@ -58,16 +58,17 @@ public class Canvas {
         panel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
+                lineRasterizer.setColor(Color.RED);
                 Point point = new Point(e.getX(), e.getY());
                 polygon.addPoint(point);
 
-                raster.clear();
+                raster.clear(Color.BLACK);
                 polygonRasterizer.rasterize(polygon);
                 panel.repaint();
             }
         });
 
-        panel.addMouseListener(new MouseAdapter() {
+        /*panel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 x1 = e.getX();
@@ -93,7 +94,7 @@ public class Canvas {
                 lineRasterizer.rasterize(blackLine);
                 panel.repaint();
             }
-        });
+        });*/
 
         /* panel.addMouseListener(new MouseAdapter() {
             @Override
@@ -126,17 +127,27 @@ public class Canvas {
         });*/
     }
 
-    private RasterBufferImage cloneRaster(RasterBufferImage raster) {
+    private RasterBufferedImage cloneRaster(RasterBufferedImage raster) {
         int width = raster.getImg().getWidth();
         int height = raster.getImg().getHeight();
-        RasterBufferImage r = new RasterBufferImage(width, height);
+        RasterBufferedImage r = new RasterBufferedImage(width, height);
 
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                r.setPixel(x, y, new Color(raster.getImg().getRGB(x, y)));
+                r.setPixel(x, y, raster.getImg().getRGB(x, y));
             }
         }
 
         return r;
+    }
+
+    public void start() {
+        raster.clear(Color.BLACK);
+        raster.getGraphics().drawString("Select mode", 5, 15);
+        panel.repaint();
+    }
+
+    public static void main(String[] args) {
+        new Canvas(800, 600).start();
     }
 }
