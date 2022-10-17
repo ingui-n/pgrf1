@@ -15,7 +15,6 @@ public class Window extends JFrame {
         panel = new Panel();
 
         add(panel, BorderLayout.CENTER);
-        setVisible(true);
         pack();
 
         setLocationRelativeTo(null);

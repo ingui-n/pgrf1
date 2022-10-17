@@ -3,7 +3,7 @@ package model;
 import java.util.ArrayList;
 
 public class Polygon {
-    private ArrayList<Point> points;
+    private final ArrayList<Point> points;
 
     public Polygon() {
         this.points = new ArrayList<>();
@@ -19,5 +19,9 @@ public class Polygon {
 
     public int getCount() {
         return points.size();
+    }
+
+    public void removeLastPoint() {
+        points.remove(getCount() - 1);
     }
 }

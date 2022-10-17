@@ -82,4 +82,18 @@ public class RasterBufferedImage implements Raster {
     public int getHeight() {
         return img.getHeight();
     }
+
+    public RasterBufferedImage cloneRaster(RasterBufferedImage raster) {
+        int width = raster.getImg().getWidth();
+        int height = raster.getImg().getHeight();
+        RasterBufferedImage r = new RasterBufferedImage(width, height);
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                r.setPixel(x, y, raster.getImg().getRGB(x, y));
+            }
+        }
+
+        return r;
+    }
 }

@@ -127,20 +127,6 @@ public class Canvas {
         });*/
     }
 
-    private RasterBufferedImage cloneRaster(RasterBufferedImage raster) {
-        int width = raster.getImg().getWidth();
-        int height = raster.getImg().getHeight();
-        RasterBufferedImage r = new RasterBufferedImage(width, height);
-
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                r.setPixel(x, y, raster.getImg().getRGB(x, y));
-            }
-        }
-
-        return r;
-    }
-
     public void start() {
         raster.clear(Color.BLACK);
         raster.getGraphics().drawString("Select mode", 5, 15);

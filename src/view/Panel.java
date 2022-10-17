@@ -53,5 +53,10 @@ public class Panel extends JPanel {
 
     public void clear() {
         raster.clear();
+        printLegend();
+    }
+
+    public void printLegend() {
+        raster.getGraphics().drawString("Use mouse buttons and try resize the window", 5, 15);
     }
 }
