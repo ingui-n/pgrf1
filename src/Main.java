@@ -1,4 +1,3 @@
-import model.Line;
 import model.Point;
 import model.Polygon;
 import rasterize.FilledLineRasterizer;
@@ -20,6 +19,7 @@ public class Main {
     private static RasterBufferedImage raster;
     //private static RasterBufferedImage rasterCopy;
     private static PolygonRasterizer polygonRasterizer;
+    private static Polygon polygon;
     private static int currentMouseButton = -1;
 
     public static void main(String[] args) {
@@ -27,30 +27,64 @@ public class Main {
         panel = window.getPanel();
         raster = panel.getRaster();
 
-        Polygon polygon = new Polygon();
+        polygon = new Polygon();
         lineRasterizer = new FilledLineRasterizer(raster);
         polygonRasterizer = new PolygonRasterizer(lineRasterizer);
         panel.printLegend();
+        lineRasterizer.setColor(Color.RED);
 
         window.setVisible(true);
 
+        extendPolygonListeners();
+        polygonPointShiftListeners();
+
+
+        panel.addComponentListener(new ComponentAdapter() {
+            /**
+             * Resets raster and all rasterizerS
+             * @param e the event to be processed
+             */
+            @Override
+            public void componentResized(ComponentEvent e) {
+                raster = panel.getRaster();
+                lineRasterizer = new FilledLineRasterizer(raster);
+                polygonRasterizer = new PolygonRasterizer(lineRasterizer);
+            }
+        });
+    }
+
+    private static void polygonPointShiftListeners() {
         panel.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseReleased(MouseEvent e) {
+            public void mousePressed(MouseEvent e) {
                 currentMouseButton = e.getButton();
 
-                if (currentMouseButton != MouseEvent.BUTTON1)
+                if (currentMouseButton != MouseEvent.BUTTON3)
                     return;
 
-                lineRasterizer.setColor(Color.RED);
-                Point point = new Point(e.getX(), e.getY());
-                polygon.addPoint(point);
+                polygon.changePointInPolygon(e.getX(), e.getY());
+                panel.clear();
+                polygonRasterizer.rasterize(polygon);
 
+                //get nejblizsi 2 nebo 1 bod
+                //uloz na index
+            }
+        });
+
+        panel.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (currentMouseButton != MouseEvent.BUTTON3)
+                    return;
+
+                polygon.changePointInPolygon(e.getX(), e.getY());
                 panel.clear();
                 polygonRasterizer.rasterize(polygon);
             }
         });
+    }
 
+    private static void extendPolygonListeners() {
         panel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -61,6 +95,8 @@ public class Main {
 
                 Point point = new Point(e.getX(), e.getY());
                 polygon.addPoint(point);
+
+                panel.clear();
                 polygonRasterizer.rasterize(polygon);
             }
         });
@@ -78,19 +114,6 @@ public class Main {
 
                 panel.clear();
                 polygonRasterizer.rasterize(polygon);
-            }
-        });
-
-        panel.addComponentListener(new ComponentAdapter() {
-            /**
-             * Resets raster and all rasterizerS
-             * @param e the event to be processed
-             */
-            @Override
-            public void componentResized(ComponentEvent e) {
-                raster = panel.getRaster();
-                lineRasterizer = new FilledLineRasterizer(raster);
-                polygonRasterizer = new PolygonRasterizer(lineRasterizer);
             }
         });
     }
