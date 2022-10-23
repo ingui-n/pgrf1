@@ -8,11 +8,11 @@ import java.awt.event.ComponentEvent;
 public class Window extends JFrame {
     private final Panel panel;
 
-    public Window() {
+    public Window(int width, int height) {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setTitle("PGRF1 Task1");
 
-        panel = new Panel();
+        panel = new Panel(width, height);
 
         add(panel, BorderLayout.CENTER);
         pack();

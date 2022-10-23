@@ -1,139 +1,333 @@
-import model.Polygon;
-import rasterize.*;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import model.Line;
 import model.Point;
+import model.Polygon;
+import model.Triangle;
+import rasterize.*;
+import view.Panel;
+import view.Window;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.util.ArrayList;
 
 public class Canvas {
-    private final JFrame frame;
-    private JPanel panel;
-    private RasterBufferedImage raster;
+    private final Panel panel;
     private LineRasterizer lineRasterizer;
     private PolygonRasterizer polygonRasterizer;
-
-    private int x1;
-    private int y1;
-    private int x2;
-    private int y2;
-    private RasterBufferedImage r;
-
-    private Polygon polygon;
+    private TriangleRasterizer triangleRasterizer;
+    private RasterBufferedImage raster;
+    private final ArrayList<Line> lines = new ArrayList<>();
+    private final Polygon polygon;
+    private final Triangle triangle;
+    private int currentMouseButton = -1;
+    private Point polygonClosestPoint;
+    private int polygonClosestPointIndex;
+    private Point linePoint1;
 
     public Canvas(int width, int height) {
-        frame = new JFrame();
+        Window window = new Window(width, height);
+        panel = window.getPanel();
+        raster = panel.getRaster();
 
-        frame.setLayout(new BorderLayout());
-        frame.setTitle("PGRF1");
-        frame.setResizable(true);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
-        raster = new RasterBufferedImage(width, height);
-
-//        lineRasterizer = new LineRasterizerGraphics(raster);
-        lineRasterizer = new FilledLineRasterizer(raster);
-
-        polygonRasterizer = new PolygonRasterizer(lineRasterizer);
         polygon = new Polygon();
+        triangle = new Triangle();
+        lineRasterizer = new FilledLineRasterizer(raster);
+        polygonRasterizer = new PolygonRasterizer(lineRasterizer);
+        triangleRasterizer = new TriangleRasterizer(lineRasterizer);
+        window.setVisible(true);
 
-        panel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                raster.present(g);
-            }
-        };
+        lineListeners();
+        polygonListeners();
+        triangleListeners();
 
-        panel.setPreferredSize(new Dimension(width, height));
+        keyEventListeners();
+        resizeListener();
+    }
 
-        frame.add(panel, BorderLayout.CENTER);
-        frame.pack();
-        frame.setVisible(true);
-
-        panel.requestFocus();
-        panel.requestFocusInWindow();
-
+    private void lineListeners() {
         panel.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseReleased(MouseEvent e) {
-                lineRasterizer.setColor(Color.RED);
-                Point point = new Point(e.getX(), e.getY());
-                polygon.addPoint(point);
-
-                raster.clear(Color.BLACK);
-                polygonRasterizer.rasterize(polygon);
-                panel.repaint();
-            }
-        });
-
-        /*panel.addMouseListener(new MouseAdapter() {
-            @Override
             public void mousePressed(MouseEvent e) {
-                x1 = e.getX();
-                y1 = e.getY();
+                if (panel.isNotMode("line"))
+                    return;
 
-                r = cloneRaster(raster);
+                currentMouseButton = e.getButton();
 
+                if (currentMouseButton != MouseEvent.BUTTON1)
+                    return;
+
+                linePoint1 = new Point(e.getX(), e.getY());
             }
         });
 
         panel.addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                //raster.clear();
+                if (panel.isNotMode("line"))
+                    return;
 
-                Line line = new Line(x1, y1, x2, y2, Color.BLACK);
-                lineRasterizer.rasterize(line);
+                if (currentMouseButton != MouseEvent.BUTTON1)
+                    return;
 
-                x2 = e.getX();
-                y2 = e.getY();
+                if (linePoint1 == null)
+                    return;
 
-                Line blackLine = new Line(x1, y1, x2, y2, new Color(0xFF0000));
-                lineRasterizer.rasterize(blackLine);
-                panel.repaint();
+                Point linePoint2 = new Point(e.getX(), e.getY());
+                Line line = new Line(linePoint1, linePoint2);
+                line.setColor(Color.CYAN);
+                line.setType("dotted");
+
+                lines.add(line);
+
+                panel.clear();
+
+                for (Line l : lines) {
+                    lineRasterizer.rasterize(l);
+                }
+
+                lines.remove(line);
             }
-        });*/
+        });
 
-        /* panel.addMouseListener(new MouseAdapter() {
+        panel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                raster = r;
-                lineRasterizer = new LineRasterizerTrivial(raster);
+                if (panel.isNotMode("line"))
+                    return;
 
-                panel = new JPanel() {
-                    @Override
-                    protected void paintComponent(Graphics g) {
-                        super.paintComponent(g);
-                        raster.present(g);
-                    }
-                };
+                currentMouseButton = e.getButton();
+
+                if (currentMouseButton != MouseEvent.BUTTON1)
+                    return;
+
+                if (linePoint1 == null)
+                    return;
+
+                int mouseX = e.getX();
+                int mouseY = e.getY();
+
+                if (linePoint1.getX() == mouseX && linePoint1.getY() == mouseY)
+                    return;
+
+                Point linePoint2 = new Point(mouseX, mouseY);
+                Line line = new Line(linePoint1, linePoint2);
+
+                lines.add(line);
+
+                for (Line l : lines) {
+                    lineRasterizer.rasterize(l);
+                }
             }
-        });*/
+        });
+    }
 
-        /*
-         * paint from the origin
+    private void polygonListeners() {
+        panel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (panel.isNotMode("polygon"))
+                    return;
 
-         panel.addMouseMotionListener(new MouseAdapter() {
-        @Override public void mouseDragged(MouseEvent e) {
-        raster.clear();
+                int mouseX = e.getX();
+                int mouseY = e.getY();
 
-        Line line = new Line(width / 2, height / 2, e.getX(), e.getY(), 0xff0000);
-        lineRasterizer.rasterize(line);
+                currentMouseButton = e.getButton();
 
-        panel.repaint();
+                if (currentMouseButton == MouseEvent.BUTTON3) {
+                    polygon.moveClosestPointInPolygon(mouseX, mouseY);
+
+                    panel.clear();
+                    polygonRasterizer.rasterize(polygon);
+                } else if (currentMouseButton == MouseEvent.BUTTON1) {
+                    if (polygon.getCount() < 2)
+                        return;
+
+                    polygonClosestPoint = polygon.getClosestPoint(mouseX, mouseY);
+                    polygonClosestPointIndex = polygon.getPointIndex(polygonClosestPoint);
+                }
+            }
+        });
+
+        panel.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (panel.isNotMode("polygon"))
+                    return;
+
+                int mouseX = e.getX();
+                int mouseY = e.getY();
+
+                if (currentMouseButton == MouseEvent.BUTTON3) {
+                    int polygonMovePointIndex = polygon.getMovePointIndex();
+
+                    if (polygonMovePointIndex != -1) {
+                        Point point = new Point(mouseX, mouseY);
+                        polygon.replacePoint(point, polygonMovePointIndex);
+
+                        panel.clear();
+                        polygonRasterizer.rasterize(polygon);
+                    }
+                } else if (currentMouseButton == MouseEvent.BUTTON1) {
+                    if (polygon.getCount() < 2)
+                        return;
+
+                    Point point = polygon.getPreviousPoint(polygonClosestPointIndex);
+
+                    Line line1 = new Line(polygonClosestPoint.getX(), polygonClosestPoint.getY(), mouseX, mouseY);
+                    line1.setType("dashed");
+                    line1.setColor(Color.CYAN);
+
+                    Line line2 = new Line(point.getX(), point.getY(), mouseX, mouseY);
+                    line2.setType("dashed");
+                    line2.setColor(Color.CYAN);
+
+                    panel.clear();
+                    polygonRasterizer.rasterize(polygon);
+                    lineRasterizer.rasterize(line1);
+                    lineRasterizer.rasterize(line2);
+                }
+            }
+        });
+
+        panel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (panel.isNotMode("polygon"))
+                    return;
+
+                currentMouseButton = e.getButton();
+
+                if (currentMouseButton == MouseEvent.BUTTON3) {
+                    polygon.setMovePointIndex(-1);
+                } else if (currentMouseButton == MouseEvent.BUTTON1) {
+                    int mouseX = e.getX();
+                    int mouseY = e.getY();
+
+                    Point point = new Point(mouseX, mouseY);
+                    polygon.addPoint(point, polygon.getCount() < 2 ? polygon.getCount() : polygonClosestPointIndex);
+
+                    panel.clear();
+                    polygonRasterizer.rasterize(polygon);
+                }
+            }
+        });
+    }
+
+    private void triangleListeners() {
+        panel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (panel.isNotMode("triangle"))
+                    return;
+
+                currentMouseButton = e.getButton();
+
+                if (currentMouseButton != MouseEvent.BUTTON1)
+                    return;
+
+                if (triangle.getPointC() != null) {
+                    panel.removeMouseMotionListener(drawTriangleListener);
+                    triangle.clear();
+                } else {
+                    triangle.setFirstPoint(new Point(e.getX(), e.getY()));
+                }
+            }
+        });
+
+        panel.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (panel.isNotMode("triangle"))
+                    return;
+
+                if (currentMouseButton != MouseEvent.BUTTON1)
+                    return;
+
+                if (triangle.getFirstPoint() == null)
+                    return;
+
+                triangle.setSecondPoint(new Point(e.getX(), e.getY()));
+                triangle.calculateLineAB();
+
+                panel.clear();
+                triangleRasterizer.rasterize(triangle);
+            }
+        });
+
+        panel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (panel.isNotMode("triangle"))
+                    return;
+
+                if (triangle.getLineAB() == null)
+                    return;
+
+                panel.addMouseMotionListener(drawTriangleListener);
+            }
+        });
+    }
+
+    MouseMotionListener drawTriangleListener = new MouseAdapter() {
+        @Override
+        public void mouseMoved(MouseEvent e) {
+            triangle.calculatePointC(e.getX(), e.getY());
+
+            panel.clear();
+            triangleRasterizer.rasterize(triangle);
         }
-        });*/
+    };
+
+    private void keyEventListeners() {
+        panel.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_C) {
+                    clearAllStructures();
+                } else if (e.getKeyCode() == KeyEvent.VK_P) {
+                    panel.setMode("polygon");
+                    clearAllStructures();
+                } else if (e.getKeyCode() == KeyEvent.VK_L) {
+                    panel.setMode("line");
+                    clearAllStructures();
+                } else if ((e.getKeyCode() == KeyEvent.VK_T)) {
+                    panel.setMode("triangle");
+                    clearAllStructures();
+                }
+            }
+        });
+    }
+
+    private void resizeListener() {
+        panel.addComponentListener(new ComponentAdapter() {
+            /**
+             * Resets raster and all rasterizerS
+             * @param e the event to be processed
+             */
+            @Override
+            public void componentResized(ComponentEvent e) {
+                raster = panel.getRaster();
+                lineRasterizer = new FilledLineRasterizer(raster);
+                polygonRasterizer = new PolygonRasterizer(lineRasterizer);
+                triangleRasterizer = new TriangleRasterizer(lineRasterizer);
+            }
+        });
+    }
+
+    private void clearAllStructures() {
+        panel.removeMouseMotionListener(drawTriangleListener);
+        currentMouseButton = -1;
+        polygonClosestPoint = null;
+        linePoint1 = null;
+        lines.clear();
+        polygon.clear();
+        triangle.clear();
+        panel.clear();
     }
 
     public void start() {
         raster.clear(Color.BLACK);
-        raster.getGraphics().drawString("Select mode", 5, 15);
         panel.repaint();
-    }
-
-    public static void main(String[] args) {
-        new Canvas(800, 600).start();
+        panel.printLegend();
     }
 }

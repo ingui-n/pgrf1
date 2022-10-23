@@ -5,28 +5,15 @@ import java.awt.*;
 
 public abstract class LineRasterizer {
     protected Raster raster;
-    protected Color color;
 
     public LineRasterizer(Raster raster) {
         this.raster = raster;
     }
 
-    public void setColor(Color color) {
-        this.color = color;
-    }
-
-    public void setColor(int color) {
-        this.color = new Color(color);
-    }
-
     public void rasterize(Line line) {
-        drawLine(line.getX1(), line.getY1(), line.getX2(), line.getY2());
+        drawLine(line.getX1(), line.getY1(), line.getX2(), line.getY2(), line.getColor(), line.getType());
     }
 
-    public void rasterize(int x1, int y1, int x2, int y2) {
-        drawLine(x1, y1, x2, y2);
-    }
-
-    public void drawLine(int x1, int y1, int x2, int y2) {
+    public void drawLine(int x1, int y1, int x2, int y2, Color color, String type) {
     }
 }

@@ -5,22 +5,27 @@ import java.awt.*;
 public class Line {
     private final int x1, y1;
     private final int x2, y2;
-    private final Color color;
+    private Color color = Color.WHITE;
+    private Point centerPoint;
 
-    public Line(int x1, int y1, int x2, int y2, Color color) {
+    private String type = "solid";
+
+    public Line(int x1, int y1, int x2, int y2) {
         this.x1 = x1;
         this.y1 = y1;
         this.x2 = x2;
         this.y2 = y2;
-        this.color = color;
+
+        sumLineCenter();
     }
 
-    public Line(Point point1, Point point2, Color color) {
+    public Line(Point point1, Point point2) {
         this.x1 = point1.getX();
         this.y1 = point1.getY();
         this.x2 = point2.getX();
         this.y2 = point2.getY();
-        this.color = color;
+
+        sumLineCenter();
     }
 
     public int getX1() {
@@ -41,5 +46,29 @@ public class Line {
 
     public Color getColor() {
         return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
+    public Point getCenter() {
+        return this.centerPoint;
+    }
+
+    private void sumLineCenter() {
+        this.centerPoint = new Point((x1 + x2) / 2, (y1 + y2) / 2);
+    }
+
+    public double getLineLength() {
+        return Math.sqrt(Math.pow(this.x2 - this.x1, 2) + Math.pow(this.y2 - this.y1, 2));
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

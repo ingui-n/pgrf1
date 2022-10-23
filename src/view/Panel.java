@@ -8,26 +8,39 @@ import java.util.TimerTask;
 
 public class Panel extends JPanel {
     private RasterBufferedImage raster;
+
+    private String mode = "line";
+
+    private static final int FPS = 30;
+
+    Panel(int width, int height) {
+        setPreferredSize(new Dimension(width, height));
+        raster = new RasterBufferedImage(width, height);
+
+        raster.setClearColor(Color.BLACK.getRGB());
+        setLoop();
+    }
+
     public RasterBufferedImage getRaster() {
         return raster;
     }
 
-    private static final int FPS = 1000 / 20;
-    public static final int WIDTH = 800, HEIGHT = 600;
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
 
-    Panel() {
-        setPreferredSize(new Dimension(WIDTH, HEIGHT));
-        raster = new RasterBufferedImage(WIDTH, HEIGHT);
+    public String getMode() {
+        return mode;
+    }
 
-        raster.setClearColor(Color.BLACK.getRGB());
-        setLoop();
+    public boolean isNotMode(String mode) {
+        return !this.mode.equals(mode);
     }
 
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         raster.repaint(g);
-        // pro zájemce - co dělá observer - https://stackoverflow.com/a/1684476
     }
 
     public void resize() {
@@ -57,6 +70,26 @@ public class Panel extends JPanel {
     }
 
     public void printLegend() {
-        raster.getGraphics().drawString("Use mouse buttons and try resize the window", 5, 15);
+        Graphics gr = raster.getGraphics();
+
+        if (this.mode.equals("line"))
+            gr.setColor(Color.CYAN);
+
+        gr.drawString("Lines [L]", 5, 15);
+        gr.setColor(Color.WHITE);
+
+        if (this.mode.equals("polygon"))
+            gr.setColor(Color.CYAN);
+
+        gr.drawString("Polygon [P]", 5, 30);
+        gr.setColor(Color.WHITE);
+
+        if (this.mode.equals("triangle"))
+            gr.setColor(Color.CYAN);
+
+        gr.drawString("Triangle [T]", 5, 45);
+        gr.setColor(Color.WHITE);
+
+        gr.drawString("Clear [C]", 5, 60);
     }
 }
