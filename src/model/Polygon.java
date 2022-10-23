@@ -51,6 +51,10 @@ public class Polygon {
         points.remove(getCount() - 1);
     }
 
+    public void removePoint(Point point) {
+        points.remove(point);
+    }
+
     public void clear() {
         points.clear();
     }

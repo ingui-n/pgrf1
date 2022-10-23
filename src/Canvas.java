@@ -144,6 +144,12 @@ public class Canvas {
 
                     polygonClosestPoint = polygon.getClosestPoint(mouseX, mouseY);
                     polygonClosestPointIndex = polygon.getPointIndex(polygonClosestPoint);
+                } else if (currentMouseButton == MouseEvent.BUTTON2) {
+                    Point closestPoint = polygon.getClosestPoint(mouseX, mouseY);
+                    polygon.removePoint(closestPoint);
+
+                    panel.clear();
+                    polygonRasterizer.rasterize(polygon);
                 }
             }
         });
