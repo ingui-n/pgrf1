@@ -51,8 +51,18 @@ public class Polygon {
         points.remove(getCount() - 1);
     }
 
-    public void removePoint(Point point) {
-        points.remove(point);
+    public void removeClosestPoint(int mouseX, int mouseY) {
+        if (getCount() == 0)
+            return;
+
+        Point closestPoint = getClosestPoint(mouseX, mouseY);
+
+        Line polygonPointToMouse = new Line(closestPoint.getX(), closestPoint.getY(), mouseX, mouseY);
+
+        if (polygonPointToMouse.getLineLength() > 20)
+            return;
+
+        points.remove(closestPoint);
     }
 
     public void clear() {
