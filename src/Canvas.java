@@ -276,6 +276,9 @@ public class Canvas {
     MouseMotionListener drawTriangleListener = new MouseAdapter() {
         @Override
         public void mouseMoved(MouseEvent e) {
+            if (triangle.getLineAB() == null)
+                return;
+
             triangle.calculatePointC(e.getX(), e.getY());
 
             panel.clear();
